@@ -62,8 +62,11 @@ def stream_response(message, history):
         for response in llm.stream(history_lnagchain_format):
             partial_message += response.content
             yield partial_message
-
-        save_turn_to_csv(message, partial_message)
+        
+        try:    
+            save_turn_to_csv(message, partial_message)
+        except:
+            print("Failed to save to csv, but continuing anyway!")
 
 
 demo_iterface = gr.ChatInterface(
