@@ -6,7 +6,7 @@ import csv
 from datetime import datetime
 import uuid
 from dotenv import load_dotenv
-from app.prompts import SYSTEM_PROMPT, USER_PROMPT
+from app.prompts import SYSTEM_PROMPT
 
 CHATID = uuid.uuid4()
 print(f"Chat/Session ID: {CHATID}")
@@ -80,4 +80,4 @@ demo_iterface = gr.ChatInterface(
     title="Travel Itinerary Planner",
 )
 
-demo_iterface.launch(share=True, debug=True, share=True)
+demo_iterface.launch(share=True, debug=True)
