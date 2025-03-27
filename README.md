@@ -1,3 +1,16 @@
+---
+title: My Travel Planner
+emoji: ✈️
+colorFrom: purple
+colorTo: blue
+sdk: gradio
+sdk_version: 5.23.1
+app_file: app/main.py
+pinned: false
+license: mit
+short_description: 'An AI-powered travel planner that generates personalized itineraries'
+---
+
 # ✈️ Travel Planner Project
 
 Welcome to the **AI-Powered Travel Planner**! This project generates personalized travel itineraries, integrating an open-source model for prompt refinement, information extraction, and itinerary generation. 🌍✨
