@@ -8,7 +8,7 @@ sdk_version: 5.23.1
 app_file: app/main.py
 pinned: false
 license: mit
-short_description: 'An AI-powered travel planner that generates personalized itineraries'
+short_description: 'An AI-powered travel planner'
 ---
 
 # ✈️ Travel Planner Project
