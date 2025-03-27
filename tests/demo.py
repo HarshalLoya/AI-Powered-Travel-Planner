@@ -1,86 +1,43 @@
 import gradio as gr
-from typing import TypedDict, Annotated, List
-from langgraph.graph import StateGraph, END
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate
+# from typing import TypedDict, Annotated, List
+# from langgraph.graph import StateGraph, END
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+# from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 import os
 from dotenv import load_dotenv
+import sys
+print(sys.path)
+
+from app.prompts import SYSTEM_PROMPT
 
 load_dotenv(dotenv_path=".env")
 GROQ_LLAMA_70B_VERSATILE_API_KEY = os.getenv("GROQ_LLAMA_70B_VERSATILE_API_KEY")
-print(GROQ_LLAMA_70B_VERSATILE_API_KEY)
-
-class PlannerState(TypedDict):
-    messages: Annotated[List[HumanMessage | AIMessage], "The messages in the conversation"]
-    city: str
-    interests: List[str]
-    itinerary: str
-
-# Define the LLM
-llm = ChatGroq(
-    temperature=0,
-    groq_api_key=GROQ_LLAMA_70B_VERSATILE_API_KEY,
-    model_name="llama-3.3-70b-versatile"
+(
+    print("SUCCESSFULLY FETCHED LLAMA API KEY")
+    if GROQ_LLAMA_70B_VERSATILE_API_KEY is not None
+    else print("ERROR IN FETCHING LLAMA API KEY")
 )
 
-# Define the itinerary prompt
-itinerary_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful travel assistant. Create a day trip itinerary for {city} based on the user's interests: {interests}. Provide a brief, bulleted itinerary."),
-    ("human", "Create an itinerary for my day trip."),
-])
+llm = ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=GROQ_LLAMA_70B_VERSATILE_API_KEY, temperature=0, streaming=True)
 
-def input_city(city: str, state: PlannerState) -> PlannerState:
-    return {
-        **state,
-        "city": city,
-        "messages": state['messages'] + [HumanMessage(content=city)],
-    }
+def stream_response(message, history):
+    print(f"Input: {message}. History: {history}\n")
 
-def input_interests(interests: str, state: PlannerState) -> PlannerState:
-    return {
-        **state,
-        "interests": [interest.strip() for interest in interests.split(',')],
-        "messages": state['messages'] + [HumanMessage(content=interests)],
-    }
+    history_lnagchain_format = []
+    history_lnagchain_format.append(SystemMessage(content=SYSTEM_PROMPT))
 
-def create_itinerary(state: PlannerState) -> str:
-    response = llm.invoke(itinerary_prompt.format_messages(city=state['city'], interests=", ".join(state['interests'])))
-    state["itinerary"] = response.content
-    state["messages"] += [AIMessage(content=response.content)]
-    return response.content
+    for human, ai in history:
+        history_lnagchain_format.append(HumanMessage(content=human))
+        history_lnagchain_format.append(AIMessage(content=ai))
 
-# Define the Gradio application
-def travel_planner(city: str, interests: str):
-    # Initialize state
-    state = {
-        "messages": [],
-        "city": "",
-        "interests": [],
-        "itinerary": "",
-    }
+    if message is not None:
+        history_lnagchain_format.append(HumanMessage(content=message))
+        partial_message = ""
+        for response in llm.stream(history_lnagchain_format):
+            partial_message += response.content
+            yield partial_message
 
-    # Process the city and interests inputs
-    state = input_city(city, state)
-    state = input_interests(interests, state)
+demo_iterface = gr.ChatInterface(stream_response, textbox=gr.Textbox(placeholder="Enter your message here..."), autoscroll=True, flagging_mode="manual", save_history=True)
 
-    # Generate the itinerary
-    itinerary = create_itinerary(state)
-
-    return itinerary
-
-# Build the Gradio interface
-interface = gr.Interface(
-    fn=travel_planner,
-    theme='Yntec/HaleyCH_Theme_Orange_Green',
-    inputs=[
-        gr.Textbox(label="Enter the city for your day trip"),
-        gr.Textbox(label="Enter your interests (comma-separated)"),
-    ],
-    outputs=gr.Textbox(label="Generated Itinerary"),
-    title="Travel Itinerary Planner",
-    description="Enter a city and your interests to generate a personalized day trip itinerary."
-)
-
-# Launch the Gradio application
-interface.launch()
+demo_iterface.launch(share=True, debug=True)
