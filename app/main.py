@@ -5,13 +5,13 @@ import os
 import csv
 from datetime import datetime
 import uuid
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from app.prompts import SYSTEM_PROMPT
 
 CHATID = uuid.uuid4()
 print(f"Chat/Session ID: {CHATID}")
 
-load_dotenv(dotenv_path=".env")
+# load_dotenv(dotenv_path=".env")
 GROQ_LLAMA_70B_VERSATILE_API_KEY = os.getenv("GROQ_LLAMA_70B_VERSATILE_API_KEY")
 (
     print("SUCCESSFULLY FETCHED LLAMA API KEY")
